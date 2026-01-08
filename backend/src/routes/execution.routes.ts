@@ -35,6 +35,104 @@ const listExecutionsSchema = z.object({
   }),
 });
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Execution:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Execution ID
+ *         workflowId:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RUNNING, COMPLETED, FAILED, CANCELLED, PAUSED]
+ *         startTime:
+ *           type: string
+ *           format: date-time
+ *         endTime:
+ *           type: string
+ *           format: date-time
+ *         input:
+ *           type: object
+ *         output:
+ *           type: object
+ *     StepExecution:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         nodeId:
+ *           type: string
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RUNNING, COMPLETED, FAILED, SKIPPED]
+ *         startTime:
+ *           type: string
+ *           format: date-time
+ *         endTime:
+ *           type: string
+ *           format: date-time
+ *         logs:
+ *           type: array
+ *           items:
+ *             type: string
+ *     ExecutionInput:
+ *       type: object
+ *       properties:
+ *         input:
+ *           type: object
+ *           description: JSON input for the workflow execution
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Executions
+ *   description: Workflow execution management endpoints
+ */
+
+/**
+ * @swagger
+ * /workflows/{workflowId}/execute:
+ *   post:
+ *     summary: Trigger a workflow execution
+ *     tags: [Executions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: workflowId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workflow ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ExecutionInput'
+ *     responses:
+ *       201:
+ *         description: Execution triggered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     run:
+ *                       $ref: '#/components/schemas/Execution'
+ */
+
 // POST /workflows/:workflowId/execute - Trigger execution
 router.post(
   '/:workflowId/execute',
@@ -59,6 +157,61 @@ router.post(
 );
 
 // GET /runs - List executions
+/**
+ * @swagger
+ * /runs:
+ *   get:
+ *     summary: List executions
+ *     tags: [Executions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: workflowId
+ *         schema:
+ *           type: string
+ *         description: Filter by workflow ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, RUNNING, COMPLETED, FAILED, CANCELLED, PAUSED]
+ *         description: Filter by status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Items per page
+ *     responses:
+ *       200:
+ *         description: List of executions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     runs:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Execution'
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ */
 router.get(
   '/',
   validate(listExecutionsSchema),
@@ -81,6 +234,40 @@ router.get(
 );
 
 // GET /runs/:runId - Get execution
+/**
+ * @swagger
+ * /runs/{runId}:
+ *   get:
+ *     summary: Get execution details
+ *     tags: [Executions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: runId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Execution ID
+ *     responses:
+ *       200:
+ *         description: Execution details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     run:
+ *                       $ref: '#/components/schemas/Execution'
+ *       404:
+ *         description: Execution not found
+ */
 router.get(
   '/:runId',
   validate(runIdSchema),
@@ -103,6 +290,25 @@ router.get(
 );
 
 // POST /runs/:runId/pause - Pause execution
+/**
+ * @swagger
+ * /runs/{runId}/pause:
+ *   post:
+ *     summary: Pause an execution
+ *     tags: [Executions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: runId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Execution ID
+ *     responses:
+ *       200:
+ *         description: Execution paused successfully
+ */
 router.post(
   '/:runId/pause',
   validate(runIdSchema),
@@ -121,6 +327,25 @@ router.post(
 );
 
 // POST /runs/:runId/resume - Resume execution
+/**
+ * @swagger
+ * /runs/{runId}/resume:
+ *   post:
+ *     summary: Resume a paused execution
+ *     tags: [Executions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: runId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Execution ID
+ *     responses:
+ *       200:
+ *         description: Execution resumed successfully
+ */
 router.post(
   '/:runId/resume',
   validate(runIdSchema),
@@ -139,6 +364,25 @@ router.post(
 );
 
 // POST /runs/:runId/cancel - Cancel execution
+/**
+ * @swagger
+ * /runs/{runId}/cancel:
+ *   post:
+ *     summary: Cancel a running execution
+ *     tags: [Executions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: runId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Execution ID
+ *     responses:
+ *       200:
+ *         description: Execution cancelled successfully
+ */
 router.post(
   '/:runId/cancel',
   validate(runIdSchema),
@@ -157,6 +401,40 @@ router.post(
 );
 
 // GET /runs/:runId/steps - Get step executions
+/**
+ * @swagger
+ * /runs/{runId}/steps:
+ *   get:
+ *     summary: Get execution steps details
+ *     tags: [Executions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: runId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Execution ID
+ *     responses:
+ *       200:
+ *         description: List of step executions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     steps:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/StepExecution'
+ */
 router.get(
   '/:runId/steps',
   validate(runIdSchema),

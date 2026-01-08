@@ -2,9 +2,14 @@ import express, { Application } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
+
 import { env } from './config/env';
-import { errorHandler } from './middleware/error.middleware';
+import { swaggerSpec } from './config/swagger';
 import { logger } from './utils/logger';
+
+import { errorHandler } from './middleware/error.middleware';
+
 import authRoutes from './routes/auth.routes';
 import workflowRoutes from './routes/workflow.routes';
 import executionRoutes from './routes/execution.routes';
@@ -33,6 +38,9 @@ app.use(
     stream: { write: (message: string) => logger.info(message.trim()) },
   })
 );
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check endpoint
 app.get('/health', (_req, res) => {

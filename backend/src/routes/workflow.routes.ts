@@ -63,6 +63,155 @@ const listWorkflowsSchema = z.object({
   }),
 });
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     DAGDefinition:
+ *       type: object
+ *       description: JSON object defining the DAG structure (nodes, edges)
+ *       additionalProperties: true
+ *     Workflow:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Workflow ID
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         isActive:
+ *           type: boolean
+ *         userId:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *     WorkflowVersion:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         version:
+ *           type: integer
+ *         definition:
+ *           $ref: '#/components/schemas/DAGDefinition'
+ *         isPublished:
+ *           type: boolean
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *     WorkflowInput:
+ *       type: object
+ *       required:
+ *         - name
+ *         - dagDefinition
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         dagDefinition:
+ *           $ref: '#/components/schemas/DAGDefinition'
+ *     UpdateWorkflowInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         isActive:
+ *           type: boolean
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   name: Workflows
+ *   description: Workflow management endpoints
+ */
+
+/**
+ * @swagger
+ * /workflows:
+ *   post:
+ *     summary: Create a new workflow
+ *     tags: [Workflows]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/WorkflowInput'
+ *     responses:
+ *       201:
+ *         description: Workflow created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     workflow:
+ *                       $ref: '#/components/schemas/Workflow'
+ *   get:
+ *     summary: List workflows
+ *     tags: [Workflows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Items per page
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *         description: Filter by active status
+ *     responses:
+ *       200:
+ *         description: List of workflows
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     workflows:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Workflow'
+ *                     total:
+ *                       type: integer
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ */
+
 // POST /workflows - Create workflow
 router.post(
   '/',
@@ -104,6 +253,47 @@ router.get(
 );
 
 // GET /workflows/:id - Get workflow
+/**
+ * @swagger
+ * /workflows/{id}:
+ *   get:
+ *     summary: Get a workflow by ID
+ *     tags: [Workflows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workflow ID
+ *     responses:
+ *       200:
+ *         description: Workflow details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     workflow:
+ *                       allOf:
+ *                         - $ref: '#/components/schemas/Workflow'
+ *                         - type: object
+ *                           properties:
+ *                             versions:
+ *                               type: array
+ *                               items:
+ *                                 $ref: '#/components/schemas/WorkflowVersion'
+ *       404:
+ *         description: Workflow not found
+ */
 router.get(
   '/:id',
   validate(workflowIdSchema),
@@ -126,6 +316,46 @@ router.get(
 );
 
 // PUT /workflows/:id - Update workflow
+/**
+ * @swagger
+ * /workflows/{id}:
+ *   put:
+ *     summary: Update a workflow
+ *     tags: [Workflows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workflow ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateWorkflowInput'
+ *     responses:
+ *       200:
+ *         description: Workflow updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     workflow:
+ *                       $ref: '#/components/schemas/Workflow'
+ *       404:
+ *         description: Workflow not found
+ */
 router.put(
   '/:id',
   validate(updateWorkflowSchema),
@@ -149,6 +379,25 @@ router.put(
 );
 
 // DELETE /workflows/:id - Delete workflow
+/**
+ * @swagger
+ * /workflows/{id}:
+ *   delete:
+ *     summary: Delete a workflow
+ *     tags: [Workflows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workflow ID
+ *     responses:
+ *       200:
+ *         description: Workflow deleted successfully
+ */
 router.delete(
   '/:id',
   validate(workflowIdSchema),
@@ -167,6 +416,49 @@ router.delete(
 );
 
 // POST /workflows/:id/versions - Create new version
+/**
+ * @swagger
+ * /workflows/{id}/versions:
+ *   post:
+ *     summary: Create a new version for a workflow
+ *     tags: [Workflows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workflow ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - dagDefinition
+ *             properties:
+ *               dagDefinition:
+ *                 $ref: '#/components/schemas/DAGDefinition'
+ *     responses:
+ *       201:
+ *         description: Version created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     version:
+ *                       $ref: '#/components/schemas/WorkflowVersion'
+ */
 router.post(
   '/:id/versions',
   validate(createVersionSchema),
@@ -190,6 +482,44 @@ router.post(
 );
 
 // PUT /workflows/:id/versions/:versionId/pin - Pin version
+/**
+ * @swagger
+ * /workflows/{id}/versions/{versionId}/pin:
+ *   put:
+ *     summary: Pin a specific version of a workflow
+ *     tags: [Workflows]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Workflow ID
+ *       - in: path
+ *         name: versionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Version ID
+ *     responses:
+ *       200:
+ *         description: Version pinned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     version:
+ *                       $ref: '#/components/schemas/WorkflowVersion'
+ */
 router.put(
   '/:id/versions/:versionId/pin',
   validate(pinVersionSchema),
