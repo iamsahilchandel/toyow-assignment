@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  PAUSED
+  SUCCESS
+  FAILED
+  RETRYING
+  CANCELLED
+}
+
+enum NodeStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  RETRYING
+  SKIPPED
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+enum PluginType {
+  TEXT_TRANSFORM
+  API_PROXY
+  DATA_AGGREGATOR
+  DELAY
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  workflows Workflow[]
+
+  @@index([email])
+}
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  createdBy User              @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  versions  WorkflowVersion[]
+
+  @@index([createdById])
+  @@index([isActive])
+}
+
+model WorkflowVersion {
+  id            String   @id @default(uuid())
+  workflowId    String
+  version       Int
+  dagDefinition Json
+  isPinned      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  workflow      Workflow       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  executionRuns ExecutionRun[]
+
+  @@unique([workflowId, version])
+  @@index([workflowId])
+  @@index([isPinned])
+}
+
+model ExecutionRun {
+  id                String          @id @default(uuid())
+  workflowVersionId String
+  status            ExecutionStatus @default(PENDING)
+  startedAt         DateTime        @default(now())
+  completedAt       DateTime?
+  metadata          Json?
+  input             Json?
+
+  // Relations
+  workflowVersion WorkflowVersion @relation(fields: [workflowVersionId], references: [id], onDelete: Cascade)
+  stepExecutions  StepExecution[]
+
+  @@index([workflowVersionId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model StepExecution {
+  id           String     @id @default(uuid())
+  runId        String
+  nodeId       String
+  status       NodeStatus @default(PENDING)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  input        Json?
+  output       Json?
+  error        Json?
+  retryCount   Int        @default(0)
+  executionKey String     @unique
+  createdAt    DateTime   @default(now())
+
+  // Relations
+  run  ExecutionRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
+  logs ExecutionLog[]
+
+  @@index([runId])
+  @@index([executionKey])
+  @@index([nodeId])
+}
+
+model ExecutionLog {
+  id        String   @id @default(uuid())
+  stepId    String
+  level     LogLevel @default(INFO)
+  message   String
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  // Relations
+  step StepExecution @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([stepId])
+  @@index([timestamp])
+  @@index([level])
+}
+
+model Plugin {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  type        PluginType
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  versions PluginVersion[]
+
+  @@index([name])
+  @@index([type])
+}
+
+model PluginVersion {
+  id         String   @id @default(uuid())
+  pluginId   String
+  version    String
+  code       String   @db.Text
+  storageUrl String?
+  config     Json?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  plugin Plugin @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+
+  @@unique([pluginId, version])
+  @@index([pluginId])
+}
