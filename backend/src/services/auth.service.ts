@@ -53,8 +53,8 @@ export class AuthService {
       },
     });
 
-    // Generate token
-    const token = this.generateToken({
+    // Generate tokens
+    const tokens = this.generateTokens({
       userId: user.id,
       email: user.email,
       role: user.role,
@@ -62,7 +62,7 @@ export class AuthService {
 
     return {
       user,
-      token,
+      tokens,
     };
   }
 
@@ -83,8 +83,8 @@ export class AuthService {
       throw new AuthenticationError('Invalid email or password');
     }
 
-    // Generate token
-    const token = this.generateToken({
+    // Generate tokens
+    const tokens = this.generateTokens({
       userId: user.id,
       email: user.email,
       role: user.role,
@@ -97,7 +97,7 @@ export class AuthService {
         role: user.role,
         createdAt: user.createdAt,
       },
-      token,
+      tokens,
     };
   }
 
@@ -124,11 +124,45 @@ export class AuthService {
     }
   }
 
-  generateToken(payload: TokenPayload): string {
-    const options: SignOptions = {
+  generateTokens(payload: TokenPayload): { accessToken: string; refreshToken: string } {
+    const accessTokenOptions: SignOptions = {
       expiresIn: env.JWT_EXPIRES_IN as any,
     };
-    return jwt.sign(payload, env.JWT_SECRET, options);
+    const refreshTokenOptions: SignOptions = {
+      expiresIn: env.JWT_REFRESH_EXPIRES_IN as any,
+    };
+
+    const accessToken = jwt.sign(payload, env.JWT_SECRET, accessTokenOptions);
+    const refreshToken = jwt.sign(payload, env.JWT_SECRET, refreshTokenOptions);
+
+    return { accessToken, refreshToken };
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const decoded = this.verifyToken(refreshToken);
+
+      // Get fresh user data
+      const user = await this.getUserById(decoded.userId);
+
+      if (!user) {
+        throw new AuthenticationError('User not found');
+      }
+
+      // Generate new tokens
+      const tokens = this.generateTokens({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      return {
+        user,
+        tokens,
+      };
+    } catch (error) {
+      throw new AuthenticationError('Invalid or expired refresh token');
+    }
   }
 
   async hashPassword(password: string): Promise<string> {

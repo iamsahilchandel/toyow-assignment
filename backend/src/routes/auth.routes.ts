@@ -53,9 +53,15 @@ const loginSchema = z.object({
  *       properties:
  *         user:
  *           $ref: '#/components/schemas/User'
- *         token:
- *           type: string
- *           description: JWT Access Token
+ *         tokens:
+ *           type: object
+ *           properties:
+ *             accessToken:
+ *               type: string
+ *               description: JWT Access Token
+ *             refreshToken:
+ *               type: string
+ *               description: JWT Refresh Token
  *     RegisterInput:
  *       type: object
  *       required:
@@ -81,6 +87,13 @@ const loginSchema = z.object({
  *           type: string
  *           format: email
  *         password:
+ *           type: string
+ *     RefreshInput:
+ *       type: object
+ *       required:
+ *         - refreshToken
+ *       properties:
+ *         refreshToken:
  *           type: string
  */
 
@@ -183,6 +196,63 @@ router.post(
     try {
       const { email, password } = req.body;
       const result = await authService.login(email, password);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// POST /auth/refresh
+/**
+ * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh access token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshInput'
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/AuthResponse'
+ *       401:
+ *         description: Invalid or expired refresh token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+const refreshSchema = z.object({
+  body: z.object({
+    refreshToken: z.string().min(1, 'Refresh token is required'),
+  }),
+});
+
+router.post(
+  '/refresh',
+  validate(refreshSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { refreshToken } = req.body;
+      const result = await authService.refreshToken(refreshToken);
 
       res.status(200).json({
         success: true,

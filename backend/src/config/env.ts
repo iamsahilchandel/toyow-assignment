@@ -18,6 +18,7 @@ const envSchema = z.object({
   // JWT
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.union([z.string(), z.number()]).default('24h'),
+  JWT_REFRESH_EXPIRES_IN: z.union([z.string(), z.number()]).default('7d'),
 
   // MinIO
   MINIO_ENDPOINT: z.string(),
