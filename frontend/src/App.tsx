@@ -5,6 +5,9 @@ import { AppRoutes } from "@/routes";
 import { AuthProvider } from "@/features/auth/auth-provider";
 import { Toaster } from "sonner";
 import { BrowserRouter } from "react-router-dom";
+import { useEffect } from "react";
+import { useAppDispatch } from "@/hooks/use-redux";
+import { initializeAuth } from "@/store/slices/auth-slice";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,15 +18,28 @@ const queryClient = new QueryClient({
   },
 });
 
+function AppContent() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    // Initialize auth from localStorage on app load
+    dispatch(initializeAuth());
+  }, [dispatch]);
+
+  return (
+    <AuthProvider>
+      <AppRoutes />
+      <Toaster position="top-right" richColors />
+    </AuthProvider>
+  );
+}
+
 function App() {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-            <Toaster position="top-right" richColors />
-          </AuthProvider>
+          <AppContent />
         </BrowserRouter>
       </QueryClientProvider>
     </Provider>

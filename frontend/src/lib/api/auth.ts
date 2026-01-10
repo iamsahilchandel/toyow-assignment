@@ -3,11 +3,11 @@ import type { LoginCredentials, LoginResponse } from "@/lib/types/auth";
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    const response = await apiClient.post<LoginResponse>(
-      "/auth/login",
-      credentials
-    );
-    return response.data;
+    const response = await apiClient.post<{
+      success: boolean;
+      data: LoginResponse;
+    }>("/auth/login", credentials);
+    return response.data.data;
   },
 
   logout: async (): Promise<void> => {
