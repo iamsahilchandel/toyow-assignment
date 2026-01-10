@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../generated/prisma';
 import { AuthorizationError } from '../utils/errors';
 
 export const requireRole = (...allowedRoles: UserRole[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AuthorizationError('User not authenticated'));
     }
@@ -20,8 +20,10 @@ export const requireRole = (...allowedRoles: UserRole[]) => {
 
 export const requireAdmin = requireRole(UserRole.ADMIN);
 
-export const requireOwnership = (resourceGetter: (req: Request) => Promise<{ createdById?: string } | null>) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export const requireOwnership = (
+  resourceGetter: (req: Request) => Promise<{ createdById?: string } | null>
+) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         return next(new AuthorizationError('User not authenticated'));

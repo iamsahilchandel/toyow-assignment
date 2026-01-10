@@ -3,7 +3,7 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { prismaClient } from '../config/database';
 import { env } from '../config/env';
 import { AuthenticationError, ConflictError, ValidationError } from '../utils/errors';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../generated/prisma';
 
 const SALT_ROUNDS = 10;
 

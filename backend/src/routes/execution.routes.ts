@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { executionService } from '../services/execution.service';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validation.middleware';
-import { ExecutionStatus } from '@prisma/client';
+import { ExecutionStatus } from '../../generated/prisma';
 
 const router = Router();
 

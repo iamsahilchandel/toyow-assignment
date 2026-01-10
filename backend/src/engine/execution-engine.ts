@@ -4,8 +4,8 @@ import { dagValidator } from './dag-validator';
 import { retryManager } from './retry-manager';
 import { workflowQueue } from '../queue/workflow-queue';
 import { pluginExecutor } from '../runtime/plugin-executor';
-import { DAGDefinition, NodeConfig, ExecutionState } from '../types/workflow.types';
-import { ExecutionStatus, NodeStatus } from '@prisma/client';
+import { DAGDefinition, NodeConfig } from '../types/workflow.types';
+import { ExecutionStatus, NodeStatus } from '../../generated/prisma';
 import { logger } from '../utils/logger';
 import { NotFoundError, ValidationError } from '../utils/errors';
 

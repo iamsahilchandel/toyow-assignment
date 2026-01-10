@@ -6,6 +6,9 @@ package-lock.json
 dist/
 build/
 
+# Generated files
+generated/
+
 # Environment variables
 .env
 .env.local

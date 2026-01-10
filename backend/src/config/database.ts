@@ -1,12 +1,14 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../../generated/prisma/client';
 import { logger } from '../utils/logger';
 
 let prisma: PrismaClient;
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 
 export const getPrismaClient = (): PrismaClient => {
   if (!prisma) {
     prisma = new PrismaClient({
-      datasourceUrl: process.env.DATABASE_URL,
+      adapter,
       log: [
         { level: 'query', emit: 'event' },
         { level: 'error', emit: 'stdout' },

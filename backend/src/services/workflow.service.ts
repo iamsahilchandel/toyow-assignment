@@ -2,7 +2,7 @@ import { prismaClient } from '../config/database';
 import { DAGDefinition, dagDefinitionSchema } from '../types/workflow.types';
 import { dagValidator } from '../engine/dag-validator';
 import { NotFoundError, ValidationError, AuthorizationError } from '../utils/errors';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../generated/prisma';
 
 export class WorkflowService {
   /**

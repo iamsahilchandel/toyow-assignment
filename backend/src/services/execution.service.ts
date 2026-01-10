@@ -1,7 +1,7 @@
 import { executionEngine } from '../engine/execution-engine';
 import { prismaClient } from '../config/database';
 import { NotFoundError, AuthorizationError } from '../utils/errors';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../generated/prisma';
 
 export class ExecutionService {
   /**

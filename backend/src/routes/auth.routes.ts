@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { authService } from '../services/auth.service';
 import { validate } from '../middleware/validation.middleware';
 import { authenticate } from '../middleware/auth.middleware';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../generated/prisma';
 
 const router = Router();
 
