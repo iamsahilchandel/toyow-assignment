@@ -8,6 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 import { useEffect } from "react";
 import { useAppDispatch } from "@/hooks/use-redux";
 import { initializeAuth } from "@/store/slices/auth-slice";
+import { ThemeProvider } from "@/hooks/use-theme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,9 +39,11 @@ function App() {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        <ThemeProvider>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </ThemeProvider>
       </QueryClientProvider>
     </Provider>
   );
