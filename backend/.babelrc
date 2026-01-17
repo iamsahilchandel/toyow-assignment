@@ -23,13 +23,15 @@
         "root": ["./src"],
         "alias": {
           "@config": "./src/config",
-          "@controllers": "./src/controllers",
-          "@middleware": "./src/middleware",
-          "@models": "./src/models",
-          "@routes": "./src/routes",
-          "@services": "./src/services",
-          "@utils": "./src/utils",
-          "@types": "./src/types"
+          "@shared": "./src/shared",
+          "@infra": "./src/infra",
+          "@modules": "./src/modules",
+          "@modules/auth": "./src/modules/auth",
+          "@modules/plugins": "./src/modules/plugins",
+          "@modules/workflows": "./src/modules/workflows",
+          "@modules/runs": "./src/modules/runs",
+          "@modules/engine": "./src/modules/engine",
+          "@modules/realtime": "./src/modules/realtime"
         }
       }
     ]

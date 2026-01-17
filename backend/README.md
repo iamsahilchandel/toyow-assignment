@@ -4,23 +4,30 @@ A production-ready distributed workflow orchestration platform with DAG-based ex
 
 ## Features
 
-- ✅ **DAG-based Workflow Engine** - Deterministic, idempotent execution
+- ✅ **DAG-based Workflow Engine** - Deterministic, idempotent execution with topological ordering
+- ✅ **IF/ELSE Branching** - Conditional execution with automatic branch skipping
+- ✅ **Built-in Plugins** - TEXT_TRANSFORM, API_PROXY, DATA_AGGREGATOR, DELAY
 - ✅ **Plugin System** - Secure subprocess isolation with timeout enforcement
 - ✅ **Distributed Queue** - Redis-backed Bull queue for horizontal scalability
 - ✅ **Retry Logic** - Exponential backoff with configurable strategies
-- ✅ **Real-time Execution** - Live status updates and streaming logs
+- ✅ **WebSocket Real-time** - Live status updates via WebSocket
+- ✅ **NDJSON Log Streaming** - Real-time log streaming endpoint
 - ✅ **RBAC** - Role-based access control (Admin/User)
-- ✅ **REST API** - Complete workflow and execution management
+- ✅ **REST API** - Complete workflow, execution, and plugin management
 - ✅ **Version Control** - Workflow versioning and pinning
+- ✅ **SSRF Protection** - Built-in protection for API_PROXY plugin
+- ✅ **Response Caching** - Redis caching for API_PROXY
 
 ## Tech Stack
 
 - **Runtime**: Node.js 18+ with TypeScript
+- **Build**: Babel 7 with TypeScript preset (fast transpilation)
 - **Database**: PostgreSQL 14+ with Prisma ORM
 - **Cache/Queue**: Redis 6+ with Bull
 - **Storage**: MinIO (S3-compatible)
 - **Authentication**: JWT with bcrypt
 - **Validation**: Zod schemas
+- **Real-time**: WebSocket (ws)
 
 ## Quick Start
 
@@ -76,6 +83,7 @@ The API will be available at `http://localhost:3000`
 
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login
+- `POST /api/auth/refresh` - Refresh access token
 - `GET /api/auth/me` - Get current user
 
 ### Workflows
@@ -86,39 +94,73 @@ The API will be available at `http://localhost:3000`
 - `PUT /api/workflows/:id` - Update workflow
 - `DELETE /api/workflows/:id` - Delete workflow
 - `POST /api/workflows/:id/versions` - Create version
-- `PUT /api/workflows/:id/versions/:versionId/pin` - Pin version
+- `GET /api/workflows/:id/versions` - List versions
+- `POST /api/workflows/:id/versions/:versionId/pin` - Pin version
 
-### Execution
+### Execution (Runs)
 
-- `POST /api/workflows/:workflowId/execute` - Trigger execution
+- `POST /api/workflows/:workflowId/runs` - Trigger execution
 - `GET /api/runs` - List executions
 - `GET /api/runs/:runId` - Get execution
 - `POST /api/runs/:runId/pause` - Pause execution
 - `POST /api/runs/:runId/resume` - Resume execution
 - `POST /api/runs/:runId/cancel` - Cancel execution
 - `GET /api/runs/:runId/steps` - Get step executions
+- `GET /api/runs/:runId/steps/:nodeId` - Get specific step
+- `POST /api/runs/:runId/steps/:nodeId/retry` - Retry failed step
+- `GET /api/runs/:runId/logs` - Get execution logs
+- `GET /api/runs/:runId/logs/stream` - Stream logs (NDJSON)
+
+### Plugins
+
+- `GET /api/plugins` - List plugins
+- `GET /api/plugins/:pluginId` - Get plugin details
+- `POST /api/plugins` - Create plugin (ADMIN only)
+- `POST /api/plugins/:pluginId/versions` - Create plugin version (ADMIN only)
+- `GET /api/plugins/:pluginId/versions` - List plugin versions
+
+### WebSocket
+
+- `WS /ws?token=<jwt>` - Real-time updates
+  - `SUBSCRIBE_RUN` - Subscribe to run updates
+  - `UNSUBSCRIBE_RUN` - Unsubscribe from run
+  - Server events: `RUN_STATUS`, `STEP_STATUS`, `STEP_LOG`
 
 ## Development
 
-### Project Structure
+### Project Structure (Feature-Based "Screaming Architecture")
 
 ```
 backend/
 ├── src/
-│   ├── config/          # Configuration (env, database, redis)
-│   ├── engine/          # DAG validator, execution engine, retry manager
-│   ├── middleware/      # Authentication, RBAC, validation, errors
-│   ├── queue/           # Bull queue setup and processors
-│   ├── routes/          # API route handlers
-│   ├── runtime/         # Plugin executor and sandbox
-│   ├── services/        # Business logic layer
-│   ├── types/           # TypeScript types and Zod schemas
-│   ├── utils/           # Logger, error classes
-│   └── index.ts         # Application entry point
+│   ├── app.ts               # Express app setup
+│   ├── server.ts            # Server + WebSocket initialization
+│   ├── config/              # Environment, Swagger configuration
+│   │   ├── env.ts
+│   │   └── swagger.ts
+│   ├── shared/              # Shared utilities
+│   │   ├── errors/          # Error classes (ApiError, handlers)
+│   │   ├── http/            # Middleware (auth, rbac, validation)
+│   │   ├── logger/          # Winston logger
+│   │   ├── crypto/          # SHA-256, stable stringify
+│   │   └── utils/           # Sleep, pagination, SSRF blocklist
+│   ├── infra/               # Infrastructure
+│   │   ├── database.ts      # Prisma client
+│   │   ├── redis/           # Redis client and key patterns
+│   │   └── queue/           # Bull queues and workers
+│   └── modules/             # Feature modules
+│       ├── auth/            # Authentication (JWT, RBAC)
+│       ├── plugins/         # Plugin CRUD API
+│       ├── workflows/       # Workflow management
+│       ├── runs/            # Execution management
+│       ├── engine/          # Execution engine
+│       │   ├── dag/         # DAG building, IF branching
+│       │   ├── execution/   # Step runner, retry, idempotency
+│       │   └── runtime/     # Plugin executor, builtins
+│       └── realtime/        # WebSocket real-time updates
 ├── prisma/
-│   └── schema.prisma    # Database schema
-├── tests/               # Test files
-├── docker-compose.yml   # Local development infrastructure
+│   └── schema.prisma        # Database schema
+├── docker-compose.yml       # Local development infrastructure
 └── package.json
 ```
 

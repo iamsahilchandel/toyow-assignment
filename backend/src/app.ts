@@ -6,16 +6,14 @@ import swaggerUi from 'swagger-ui-express';
 
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
-import { logger } from './utils/logger';
+import { logger } from './shared/logger';
+import { errorHandler } from './shared/errors';
 
-import { errorHandler } from './middleware/error.middleware';
-
-import authRoutes from './routes/auth.routes';
-import workflowRoutes from './routes/workflow.routes';
-import executionRoutes from './routes/execution.routes';
-
-// Initialize queue processor
-import './queue/processors/execution.processor';
+// Import module routes
+import { authRoutes } from './modules/auth';
+import { workflowRoutes } from './modules/workflows';
+import { runsRoutes, workflowRunsRoutes } from './modules/runs';
+import { pluginRoutes } from './modules/plugins';
 
 export const app: Application = express();
 
@@ -51,11 +49,12 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// API routes
+// API routes - modular structure
 app.use('/api/auth', authRoutes);
 app.use('/api/workflows', workflowRoutes);
-app.use('/api/runs', executionRoutes);
-app.use('/api/workflows', executionRoutes); // Also mount on /api/workflows for trigger endpoint
+app.use('/api/workflows', workflowRunsRoutes); // For /workflows/:workflowId/runs
+app.use('/api/runs', runsRoutes);
+app.use('/api/plugins', pluginRoutes);
 
 // 404 handler
 app.use((_req, res) => {

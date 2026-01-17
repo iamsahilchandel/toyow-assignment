@@ -43,3 +43,6 @@ prisma/migrations/**/migration.sql
 tmp/
 temp/
 *.tmp
+
+# Docs
+BACKEND_SPEC.md
