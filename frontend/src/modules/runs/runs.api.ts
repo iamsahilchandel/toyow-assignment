@@ -11,9 +11,9 @@ export const runsApi = createApi({
       ExecutionMetadata[],
       { workflowId?: string; status?: string } | void
     >({
-      query: (filters = {}) => ({
+      query: (filters) => ({
         url: "/runs",
-        params: filters,
+        params: filters || undefined,
       }),
       providesTags: ["Run"],
     }),
@@ -65,10 +65,7 @@ export const runsApi = createApi({
         { type: "RunStep", id: `${runId}-${nodeId}` },
       ],
     }),
-    retryStep: builder.mutation<
-      RunStep,
-      { runId: string; nodeId: string }
-    >({
+    retryStep: builder.mutation<RunStep, { runId: string; nodeId: string }>({
       query: ({ runId, nodeId }) => ({
         url: `/runs/${runId}/steps/${nodeId}/retry`,
         method: "POST",

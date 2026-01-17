@@ -3,6 +3,7 @@ import authReducer from "../modules/auth/auth.slice";
 import workflowEditorReducer from "../modules/workflows/workflow-editor.slice";
 import executionReducer from "../modules/runs/execution.slice";
 import logReducer from "../modules/runs/log.slice";
+import realtimeReducer from "../modules/realtime/realtime.slice";
 import { authApi } from "../modules/auth/auth.api";
 import { workflowsApi } from "../modules/workflows/workflows.api";
 import { runsApi } from "../modules/runs/runs.api";
@@ -14,6 +15,7 @@ export const store = configureStore({
     workflowEditor: workflowEditorReducer,
     execution: executionReducer,
     log: logReducer,
+    realtime: realtimeReducer,
     [authApi.reducerPath]: authApi.reducer,
     [workflowsApi.reducerPath]: workflowsApi.reducer,
     [runsApi.reducerPath]: runsApi.reducer,
@@ -23,14 +25,17 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore these paths in the state for serialization checks
-        ignoredActions: ["execution/addEventToBuffer"],
-        ignoredPaths: ["execution.eventBuffer"],
+        ignoredActions: [
+          "execution/addEventToBuffer",
+          "realtime/addEventToBuffer",
+        ],
+        ignoredPaths: ["execution.eventBuffer", "realtime.eventBuffer"],
       },
     }).concat(
       authApi.middleware,
       workflowsApi.middleware,
       runsApi.middleware,
-      pluginsApi.middleware
+      pluginsApi.middleware,
     ),
 });
 

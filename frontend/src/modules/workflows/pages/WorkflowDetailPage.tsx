@@ -4,13 +4,18 @@ import { PageHeader } from "../../../shared/components/PageHeader";
 import { LoadingState } from "../../../shared/components/LoadingState";
 import { ErrorState } from "../../../shared/components/ErrorState";
 import { Button } from "@/shared/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { Edit, GitBranch, Play } from "lucide-react";
 
 export function WorkflowDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: workflow, isLoading, error, refetch } = useGetWorkflowQuery(id!, {
+  const {
+    data: workflow,
+    isLoading,
+    error,
+    refetch,
+  } = useGetWorkflowQuery(id!, {
     skip: !id,
   });
 
@@ -60,10 +65,12 @@ export function WorkflowDetailPage() {
               <Badge variant="secondary">v{workflow.version}</Badge>
             </div>
             <div>
-              <span className="text-sm font-medium">Nodes:</span> {workflow.nodes.length}
+              <span className="text-sm font-medium">Nodes:</span>{" "}
+              {workflow.nodes.length}
             </div>
             <div>
-              <span className="text-sm font-medium">Edges:</span> {workflow.edges.length}
+              <span className="text-sm font-medium">Edges:</span>{" "}
+              {workflow.edges.length}
             </div>
           </CardContent>
         </Card>
@@ -82,7 +89,8 @@ export function WorkflowDetailPage() {
               {new Date(workflow.updatedAt).toLocaleString()}
             </div>
             <div>
-              <span className="font-medium">Created by:</span> {workflow.createdBy}
+              <span className="font-medium">Created by:</span>{" "}
+              {workflow.createdBy}
             </div>
           </CardContent>
         </Card>

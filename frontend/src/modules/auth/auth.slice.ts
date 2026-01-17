@@ -14,38 +14,39 @@ const initialState: AuthState = {
 };
 
 // Thunk to initialize auth from localStorage
-export const initializeAuth = createAsyncThunk(
-  "auth/initialize",
-  async (_, { dispatch, rejectWithValue }) => {
-    try {
-      const accessToken = localStorage.getItem("accessToken");
-      const refreshToken = localStorage.getItem("refreshToken");
+export const initializeAuth = createAsyncThunk<
+  { user: User; tokens: AuthTokens },
+  void,
+  { rejectValue: string }
+>("auth/initialize", async (_, { dispatch, rejectWithValue }) => {
+  try {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
 
-      if (!accessToken) {
-        return rejectWithValue("No token found");
-      }
-
-      // Verify token is still valid by fetching current user
-      const result = await dispatch(authApi.endpoints.me.initiate());
-
-      if ("error" in result) {
-        throw new Error("Invalid token");
-      }
-
-      const user = result.data;
-
-      return {
-        user,
-        tokens: { accessToken, refreshToken: refreshToken || "" },
-      };
-    } catch (error) {
-      // Token is invalid, clean up
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      return rejectWithValue("Invalid token");
+    if (!accessToken) {
+      return rejectWithValue("No token found");
     }
+
+    // Verify token is still valid by fetching current user
+    const result = await dispatch(authApi.endpoints.me.initiate());
+
+    if ("error" in result) {
+      throw new Error("Invalid token");
+    }
+
+    const user = result.data as User;
+
+    return {
+      user,
+      tokens: { accessToken, refreshToken: refreshToken || "" },
+    };
+  } catch {
+    // Token is invalid, clean up
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    return rejectWithValue("Invalid token");
   }
-);
+});
 
 const authSlice = createSlice({
   name: "auth",
@@ -53,7 +54,7 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ user: User; tokens: AuthTokens }>
+      action: PayloadAction<{ user: User; tokens: AuthTokens }>,
     ) => {
       state.user = action.payload.user;
       state.tokens = action.payload.tokens;

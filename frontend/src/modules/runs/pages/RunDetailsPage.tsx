@@ -1,20 +1,32 @@
 import { useParams, Link } from "react-router-dom";
-import { useGetRunQuery, useGetRunStepsQuery, usePauseRunMutation, useResumeRunMutation, useCancelRunMutation } from "../runs.api";
+import {
+  useGetRunQuery,
+  useGetRunStepsQuery,
+  usePauseRunMutation,
+  useResumeRunMutation,
+  useCancelRunMutation,
+} from "../runs.api";
 import { PageHeader } from "../../../shared/components/PageHeader";
 import { LoadingState } from "../../../shared/components/LoadingState";
 import { ErrorState } from "../../../shared/components/ErrorState";
 import { RunActions } from "../components/RunActions";
 import { StepsTable } from "../components/StepsTable";
+import { LiveRunViewer } from "../components/LiveRunViewer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge";
 import { RunStatusBadge } from "../components/RunStatusBadge";
 import { format } from "date-fns";
 import { Button } from "@/shared/ui/button";
 import { FileText } from "lucide-react";
+import type { StepStatus } from "@/modules/realtime/realtime.types";
 
 export function RunDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: run, isLoading: runLoading, error: runError, refetch: refetchRun } = useGetRunQuery(id!, {
+  const {
+    data: run,
+    isLoading: runLoading,
+    error: runError,
+    refetch: refetchRun,
+  } = useGetRunQuery(id!, {
     skip: !id,
   });
   const { data: steps, isLoading: stepsLoading } = useGetRunStepsQuery(id!, {
@@ -45,6 +57,46 @@ export function RunDetailsPage() {
     if (id) cancelRun(id);
   };
 
+  // Map steps to node statuses for the LiveRunViewer
+  // Note: We need the workflow definition to show the full DAG
+  // For now, we'll use steps data to infer node positions in a simple layout
+  const workflowNodes =
+    steps?.map((step, index) => ({
+      id: step.nodeId,
+      type: "plugin",
+      label: step.nodeName,
+      position: { x: 150, y: index * 80 + 50 },
+    })) || [];
+
+  // Create simple edges between sequential steps
+  const workflowEdges =
+    steps?.slice(0, -1).map((step, index) => ({
+      id: `edge-${index}`,
+      source: step.nodeId,
+      target: steps[index + 1].nodeId,
+    })) || [];
+
+  // Map steps to initial statuses (convert to StepStatus)
+  const mapStatus = (status: string): StepStatus => {
+    const statusMap: Record<string, StepStatus> = {
+      pending: "PENDING",
+      running: "RUNNING",
+      succeeded: "SUCCESS",
+      failed: "FAILED",
+      skipped: "SKIPPED",
+      retrying: "RETRYING",
+    };
+    return statusMap[status.toLowerCase()] || "PENDING";
+  };
+
+  const initialSteps =
+    steps?.map((step) => ({
+      nodeId: step.nodeId,
+      status: mapStatus(step.status),
+    })) || [];
+
+  const isRunning = run.status === "running" || run.status === "pending";
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -68,6 +120,29 @@ export function RunDetailsPage() {
         }
       />
 
+      {/* Live Run Viewer - Show when run is active and has workflow data */}
+      {isRunning && workflowNodes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              Live Execution
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LiveRunViewer
+              runId={run.id}
+              workflowNodes={workflowNodes}
+              workflowEdges={workflowEdges}
+              initialSteps={initialSteps}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -79,7 +154,8 @@ export function RunDetailsPage() {
               <RunStatusBadge status={run.status} />
             </div>
             <div>
-              <span className="text-sm font-medium">Workflow:</span> {run.workflowName}
+              <span className="text-sm font-medium">Workflow:</span>{" "}
+              {run.workflowName}
             </div>
             <div>
               <span className="text-sm font-medium">Started:</span>{" "}
@@ -98,7 +174,8 @@ export function RunDetailsPage() {
               </div>
             )}
             <div>
-              <span className="text-sm font-medium">Triggered by:</span> {run.triggeredBy}
+              <span className="text-sm font-medium">Triggered by:</span>{" "}
+              {run.triggeredBy}
             </div>
           </CardContent>
         </Card>

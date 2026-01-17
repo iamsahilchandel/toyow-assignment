@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "../components/AuthProvider";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { cn } from "@/shared/lib/utils";
 import {
   Card,
   CardContent,
@@ -55,9 +54,7 @@ export function LoginPage() {
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Login with your email and password
-          </CardDescription>
+          <CardDescription>Login with your email and password</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -134,7 +131,10 @@ export function LoginPage() {
                 </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link to="/register" className="underline-offset-4 hover:underline">
+                  <Link
+                    to="/register"
+                    className="underline-offset-4 hover:underline"
+                  >
                     Sign up
                   </Link>
                 </FieldDescription>
