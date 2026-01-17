@@ -41,7 +41,12 @@ export function RegisterForm() {
     try {
       const { confirmPassword, ...credentials } = values;
       const response = await registerMutation(credentials).unwrap();
-      dispatch(setCredentials(response));
+
+      if (!response.data.tokens.accessToken) {
+        throw new Error("No access token received from server");
+      }
+
+      dispatch(setCredentials(response.data));
       navigate("/");
     } catch (err) {
       form.setError("root", {
@@ -105,7 +110,9 @@ export function RegisterForm() {
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
+              <FieldLabel htmlFor="confirmPassword">
+                Confirm Password
+              </FieldLabel>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -154,7 +161,10 @@ export function RegisterForm() {
               </Button>
               <FieldDescription className="text-center">
                 Already have an account?{" "}
-                <Link to="/login" className="underline-offset-4 hover:underline">
+                <Link
+                  to="/login"
+                  className="underline-offset-4 hover:underline"
+                >
                   Sign in
                 </Link>
               </FieldDescription>

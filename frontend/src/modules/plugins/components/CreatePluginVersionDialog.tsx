@@ -19,7 +19,8 @@ import { toast } from "sonner";
 
 const versionSchema = z.object({
   version: z.string().min(1, "Version is required"),
-  configSchema: z.string().min(1, "Config schema is required"),
+  code: z.string().min(1, "Code is required"),
+  config: z.string().min(1, "Config is required"),
 });
 
 type VersionFormValues = z.infer<typeof versionSchema>;
@@ -40,24 +41,26 @@ export function CreatePluginVersionDialog({
     resolver: zodResolver(versionSchema),
     defaultValues: {
       version: "",
-      configSchema: "{}",
+      code: "",
+      config: "{}",
     },
   });
 
   const onSubmit = async (values: VersionFormValues) => {
     try {
-      let configSchema: Record<string, unknown>;
+      let config: Record<string, unknown>;
       try {
-        configSchema = JSON.parse(values.configSchema);
+        config = JSON.parse(values.config);
       } catch (e) {
-        form.setError("configSchema", { message: "Invalid JSON" });
+        form.setError("config", { message: "Invalid JSON" });
         return;
       }
 
       await createVersion({
         pluginId,
         version: values.version,
-        configSchema,
+        code: values.code,
+        config,
       }).unwrap();
 
       toast.success("Plugin version created successfully");
@@ -93,16 +96,31 @@ export function CreatePluginVersionDialog({
               )}
             </div>
             <div>
-              <Label htmlFor="configSchema">Config Schema (JSON)</Label>
+              <Label htmlFor="code">Plugin Code</Label>
               <Textarea
-                id="configSchema"
-                {...form.register("configSchema")}
-                rows={10}
+                id="code"
+                {...form.register("code")}
+                rows={6}
+                className="font-mono text-sm"
+                placeholder="// Plugin code here..."
+              />
+              {form.formState.errors.code && (
+                <p className="text-sm text-destructive mt-1">
+                  {form.formState.errors.code.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="config">Config (JSON)</Label>
+              <Textarea
+                id="config"
+                {...form.register("config")}
+                rows={6}
                 className="font-mono text-sm"
               />
-              {form.formState.errors.configSchema && (
+              {form.formState.errors.config && (
                 <p className="text-sm text-destructive mt-1">
-                  {form.formState.errors.configSchema.message}
+                  {form.formState.errors.config.message}
                 </p>
               )}
             </div>

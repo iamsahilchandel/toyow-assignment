@@ -29,25 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await loginMutation(credentials).unwrap();
 
-      // Handle different backend response formats
-      // Backend might return { user, tokens: { accessToken, refreshToken } }
-      // Or might return { user, accessToken, refreshToken }
-      const normalizedResponse = {
-        user: response.user,
-        tokens: response.tokens || {
-          accessToken:
-            (response as unknown as { accessToken?: string }).accessToken || "",
-          refreshToken:
-            (response as unknown as { refreshToken?: string }).refreshToken ||
-            "",
-        },
-      };
-
-      if (!normalizedResponse.tokens.accessToken) {
+      if (!response.data.tokens.accessToken) {
         throw new Error("No access token received from server");
       }
 
-      dispatch(setCredentials(normalizedResponse));
+      dispatch(setCredentials(response.data));
       navigate("/");
     } catch (error) {
       throw error;

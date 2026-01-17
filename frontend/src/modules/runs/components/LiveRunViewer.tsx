@@ -21,7 +21,7 @@ import {
   connectWs,
   initializeWsClient,
 } from "@/modules/realtime/wsClient";
-import type { StepStatus } from "@/modules/realtime/realtime.types";
+import type { ExecutionStatus } from "@/shared/types/workflow";
 import { Badge } from "@/shared/ui/badge";
 import {
   Loader2,
@@ -31,11 +31,13 @@ import {
   FastForward,
   RotateCcw,
   Circle,
+  PauseCircle,
+  Ban,
 } from "lucide-react";
 
-// Status colors and icons
+// Status colors and icons (using UPPERCASE ExecutionStatus values)
 const statusConfig: Record<
-  StepStatus,
+  ExecutionStatus,
   {
     color: string;
     bgColor: string;
@@ -44,10 +46,12 @@ const statusConfig: Record<
 > = {
   PENDING: { color: "#6b7280", bgColor: "#f3f4f6", icon: Clock },
   RUNNING: { color: "#3b82f6", bgColor: "#dbeafe", icon: Loader2 },
-  SUCCESS: { color: "#10b981", bgColor: "#d1fae5", icon: CheckCircle },
+  COMPLETED: { color: "#10b981", bgColor: "#d1fae5", icon: CheckCircle },
   FAILED: { color: "#ef4444", bgColor: "#fee2e2", icon: XCircle },
   SKIPPED: { color: "#9ca3af", bgColor: "#f3f4f6", icon: FastForward },
   RETRYING: { color: "#f59e0b", bgColor: "#fef3c7", icon: RotateCcw },
+  PAUSED: { color: "#8b5cf6", bgColor: "#ede9fe", icon: PauseCircle },
+  CANCELLED: { color: "#6b7280", bgColor: "#f3f4f6", icon: Ban },
 };
 
 interface LiveRunViewerProps {
@@ -67,7 +71,7 @@ interface LiveRunViewerProps {
   }>;
   initialSteps?: Array<{
     nodeId: string;
-    status: StepStatus;
+    status: ExecutionStatus;
   }>;
 }
 
@@ -98,7 +102,7 @@ function LiveRunViewerInner({
 
   // Merge initial steps with real-time updates
   const mergedStatuses = useMemo(() => {
-    const result: Record<string, StepStatus> = {};
+    const result: Record<string, ExecutionStatus> = {};
     for (const step of initialSteps) {
       result[step.nodeId] = step.status;
     }

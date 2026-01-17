@@ -2,23 +2,14 @@
  * Type definitions for WebSocket real-time events.
  */
 
-// Run status values
-export type RunStatus =
-  | "pending"
-  | "running"
-  | "paused"
-  | "completed"
-  | "failed"
-  | "cancelled";
+import type { ExecutionStatus } from "../../shared/types/workflow";
+import type { LogLevel } from "../../shared/types/logs";
 
-// Step status values
-export type StepStatus =
-  | "PENDING"
-  | "RUNNING"
-  | "SUCCESS"
-  | "FAILED"
-  | "SKIPPED"
-  | "RETRYING";
+// Run status values (matching backend ExecutionStatus)
+export type RunStatus = ExecutionStatus;
+
+// Step status values (matching backend ExecutionStatus)
+export type StepStatus = ExecutionStatus;
 
 // WebSocket event types
 export type WSEventType =
@@ -59,11 +50,11 @@ export interface StepUpdatePayload {
   retryCount?: number;
 }
 
-// Log event payload
+// Log event payload (using UPPERCASE LogLevel from logs.ts)
 export interface LogPayload {
   runId: string;
   nodeId?: string;
-  level: "debug" | "info" | "warn" | "error";
+  level: LogLevel;
   message: string;
   timestamp: string;
   metadata?: Record<string, unknown>;

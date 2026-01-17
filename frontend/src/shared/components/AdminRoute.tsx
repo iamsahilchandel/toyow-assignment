@@ -19,5 +19,5 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/" replace />;
   }
 
-  return <ProtectedRoute allowedRoles={["admin"]}>{children}</ProtectedRoute>;
+  return <ProtectedRoute allowedRoles={["ADMIN"]}>{children}</ProtectedRoute>;
 }

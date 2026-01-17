@@ -30,15 +30,22 @@ export const initializeAuth = createAsyncThunk<
     // Verify token is still valid by fetching current user
     const result = await dispatch(authApi.endpoints.me.initiate());
 
-    if ("error" in result) {
+    if ("error" in result || !result.data) {
       throw new Error("Invalid token");
     }
 
-    const user = result.data as User;
+    // result.data is now AuthData { user, tokens }
+    const authData = result.data;
+
+    // Update tokens if returned from verification (e.g. rotation), otherwise use stored
+    const validTokens = authData.tokens || {
+      accessToken,
+      refreshToken: refreshToken || "",
+    };
 
     return {
-      user,
-      tokens: { accessToken, refreshToken: refreshToken || "" },
+      user: authData.user,
+      tokens: validTokens,
     };
   } catch {
     // Token is invalid, clean up

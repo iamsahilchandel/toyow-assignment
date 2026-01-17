@@ -19,7 +19,7 @@ import { ErrorState } from "@/shared/components/ErrorState";
 import type {
   WorkflowNode,
   WorkflowEdge,
-  WorkflowDefinitionJSON,
+  DagDefinition,
 } from "../builder/builder.types";
 import {
   mapToBackendFormat,
@@ -58,15 +58,11 @@ export function WorkflowBuilderPage() {
 
   // Initialize from existing workflow
   useEffect(() => {
-    if (workflow && workflow.nodes && workflow.edges) {
+    if (workflow && workflow.dagDefinition) {
       try {
-        // Cast the entire object to the expected type
-        const definition = {
-          nodes: workflow.nodes as unknown as WorkflowDefinitionJSON["nodes"],
-          edges: workflow.edges as unknown as WorkflowDefinitionJSON["edges"],
-        };
-        const { nodes: mappedNodes, edges: mappedEdges } =
-          mapFromBackendFormat(definition);
+        const { nodes: mappedNodes, edges: mappedEdges } = mapFromBackendFormat(
+          workflow.dagDefinition,
+        );
         setNodes(mappedNodes);
         setEdges(mappedEdges);
       } catch (err) {
@@ -136,15 +132,12 @@ export function WorkflowBuilderPage() {
     }
 
     try {
-      const definition = mapToBackendFormat(nodes, edges, {
-        name: workflow?.name,
-        description: workflow?.description,
-      });
+      const dagDefinition = mapToBackendFormat(nodes, edges);
 
       await createVersion({
         workflowId,
-        definition:
-          definition as unknown as import("@/shared/types/workflow").WorkflowDefinition,
+        dagDefinition:
+          dagDefinition as unknown as import("@/shared/types/workflow").DagDefinition,
       }).unwrap();
 
       toast.success("Workflow version saved");

@@ -9,11 +9,17 @@ interface RunActionsProps {
   onCancel: () => void;
 }
 
-export function RunActions({ status, onPause, onResume, onCancel }: RunActionsProps) {
-  const isRunning = status === "running";
-  const isPaused = status === "paused";
-  const isActive = status === "running" || status === "paused";
-  const isFinished = status === "succeeded" || status === "failed" || status === "cancelled";
+export function RunActions({
+  status,
+  onPause,
+  onResume,
+  onCancel,
+}: RunActionsProps) {
+  const isRunning = status === "RUNNING";
+  const isPaused = status === "PAUSED";
+  const isActive = status === "RUNNING" || status === "PAUSED";
+  const isFinished =
+    status === "COMPLETED" || status === "FAILED" || status === "CANCELLED";
 
   return (
     <div className="flex gap-2">

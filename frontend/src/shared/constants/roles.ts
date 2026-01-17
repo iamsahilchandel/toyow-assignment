@@ -2,8 +2,8 @@ import type { UserRole } from "../types/auth";
 
 // Role constants
 export const ROLES = {
-  ADMIN: "admin" as UserRole,
-  USER: "user" as UserRole,
+  ADMIN: "ADMIN" as UserRole,
+  USER: "USER" as UserRole,
 } as const;
 
 // Check if user has admin role

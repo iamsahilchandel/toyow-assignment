@@ -3,7 +3,14 @@ import { PageHeader } from "../../../shared/components/PageHeader";
 import { LoadingState } from "../../../shared/components/LoadingState";
 import { ErrorState } from "../../../shared/components/ErrorState";
 import { Button } from "@/shared/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/ui/table";
 import { RunStatusBadge } from "../components/RunStatusBadge";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
@@ -21,17 +28,20 @@ export function RunsListPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Runs" description="View and manage workflow executions" />
-      
+      <PageHeader
+        title="Runs"
+        description="View and manage workflow executions"
+      />
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>Workflow</TableHead>
+              <TableHead>Version ID</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Started</TableHead>
-              <TableHead>Duration</TableHead>
+              <TableHead>Completed</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -39,8 +49,12 @@ export function RunsListPage() {
             {runs && runs.length > 0 ? (
               runs.map((run) => (
                 <TableRow key={run.id}>
-                  <TableCell className="font-mono text-sm">{run.id.slice(0, 8)}...</TableCell>
-                  <TableCell>{run.workflowName}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {run.id.slice(0, 8)}...
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {run.workflowVersionId.slice(0, 8)}...
+                  </TableCell>
                   <TableCell>
                     <RunStatusBadge status={run.status} />
                   </TableCell>
@@ -48,18 +62,25 @@ export function RunsListPage() {
                     {format(new Date(run.startedAt), "PPpp")}
                   </TableCell>
                   <TableCell>
-                    {run.duration ? `${(run.duration / 1000).toFixed(2)}s` : "-"}
+                    {run.completedAt
+                      ? format(new Date(run.completedAt), "PPpp")
+                      : "-"}
                   </TableCell>
                   <TableCell>
                     <Link to={`/runs/${run.id}`}>
-                      <Button variant="ghost" size="sm">View</Button>
+                      <Button variant="ghost" size="sm">
+                        View
+                      </Button>
                     </Link>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No runs yet. Start a workflow to see runs here.
                 </TableCell>
               </TableRow>

@@ -3,43 +3,58 @@ import { baseQueryWithReauth } from "../../shared/lib/http";
 import type {
   WorkflowDefinition,
   WorkflowVersion,
+  CreateWorkflowInput,
+  UpdateWorkflowInput,
+  DagDefinition,
 } from "../../shared/types/workflow";
+import type { ApiResponse } from "../../shared/types/api";
 
 export const workflowsApi = createApi({
   reducerPath: "workflowsApi",
   baseQuery: baseQueryWithReauth,
   tagTypes: ["Workflow", "WorkflowVersion"],
   endpoints: (builder) => ({
-    getWorkflows: builder.query<WorkflowDefinition[], void>({
-      query: () => "/workflows",
+    getWorkflows: builder.query<
+      WorkflowDefinition[],
+      { page?: number; limit?: number; isActive?: boolean } | void
+    >({
+      query: (params) => ({
+        url: "/workflows",
+        params: params || undefined,
+      }),
+      transformResponse: (response: ApiResponse<WorkflowDefinition[]>) =>
+        response.data,
       providesTags: ["Workflow"],
     }),
     getWorkflow: builder.query<WorkflowDefinition, string>({
       query: (workflowId) => `/workflows/${workflowId}`,
+      transformResponse: (response: ApiResponse<WorkflowDefinition>) =>
+        response.data,
       providesTags: (_result, _error, workflowId) => [
         { type: "Workflow", id: workflowId },
       ],
     }),
-    createWorkflow: builder.mutation<
-      WorkflowDefinition,
-      Omit<WorkflowDefinition, "id" | "createdAt" | "updatedAt" | "version" | "createdBy">
-    >({
+    createWorkflow: builder.mutation<WorkflowDefinition, CreateWorkflowInput>({
       query: (workflow) => ({
         url: "/workflows",
         method: "POST",
         body: workflow,
       }),
+      transformResponse: (response: ApiResponse<WorkflowDefinition>) =>
+        response.data,
       invalidatesTags: ["Workflow"],
     }),
     updateWorkflow: builder.mutation<
       WorkflowDefinition,
-      { workflowId: string; workflow: Partial<WorkflowDefinition> }
+      { workflowId: string; workflow: UpdateWorkflowInput }
     >({
       query: ({ workflowId, workflow }) => ({
         url: `/workflows/${workflowId}`,
-        method: "PATCH",
+        method: "PUT",
         body: workflow,
       }),
+      transformResponse: (response: ApiResponse<WorkflowDefinition>) =>
+        response.data,
       invalidatesTags: (_result, _error, { workflowId }) => [
         { type: "Workflow", id: workflowId },
       ],
@@ -55,6 +70,8 @@ export const workflowsApi = createApi({
     }),
     getWorkflowVersions: builder.query<WorkflowVersion[], string>({
       query: (workflowId) => `/workflows/${workflowId}/versions`,
+      transformResponse: (response: ApiResponse<WorkflowVersion[]>) =>
+        response.data,
       providesTags: (_result, _error, workflowId) => [
         { type: "WorkflowVersion", id: `list-${workflowId}` },
       ],
@@ -65,19 +82,23 @@ export const workflowsApi = createApi({
     >({
       query: ({ workflowId, versionId }) =>
         `/workflows/${workflowId}/versions/${versionId}`,
+      transformResponse: (response: ApiResponse<WorkflowVersion>) =>
+        response.data,
       providesTags: (_result, _error, { versionId }) => [
         { type: "WorkflowVersion", id: versionId },
       ],
     }),
     createWorkflowVersion: builder.mutation<
       WorkflowVersion,
-      { workflowId: string; definition: WorkflowDefinition }
+      { workflowId: string; dagDefinition: DagDefinition }
     >({
-      query: ({ workflowId, definition }) => ({
+      query: ({ workflowId, dagDefinition }) => ({
         url: `/workflows/${workflowId}/versions`,
         method: "POST",
-        body: definition,
+        body: { dagDefinition },
       }),
+      transformResponse: (response: ApiResponse<WorkflowVersion>) =>
+        response.data,
       invalidatesTags: (_result, _error, { workflowId }) => [
         { type: "WorkflowVersion", id: `list-${workflowId}` },
       ],

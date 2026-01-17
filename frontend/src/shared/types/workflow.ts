@@ -1,15 +1,15 @@
 import { type Node as FlowNode, type Edge as FlowEdge } from "@xyflow/react";
 
-// Execution status for workflow nodes
+// Execution status for workflow nodes (matching backend API)
 export type ExecutionStatus =
-  | "pending"
-  | "running"
-  | "succeeded"
-  | "failed"
-  | "retrying"
-  | "paused"
-  | "cancelled"
-  | "skipped";
+  | "PENDING"
+  | "RUNNING"
+  | "COMPLETED"
+  | "FAILED"
+  | "RETRYING"
+  | "PAUSED"
+  | "CANCELLED"
+  | "SKIPPED";
 
 // Plugin configuration types
 export interface PluginConfig {
@@ -26,7 +26,7 @@ export interface RetryConfig {
 // Node types in the workflow
 export type NodeType = "start" | "plugin" | "condition" | "end";
 
-// Custom node data
+// Custom node data for ReactFlow
 export interface WorkflowNodeData {
   label: string;
   type: NodeType;
@@ -39,32 +39,62 @@ export interface WorkflowNodeData {
   [key: string]: unknown; // Index signature to satisfy Record<string, unknown>
 }
 
-// Workflow node extends React Flow node with custom data
+// Workflow node extends React Flow node with custom data (for UI)
 export type WorkflowNode = FlowNode<WorkflowNodeData>;
 
-// Workflow edge (connection between nodes)
+// Workflow edge (connection between nodes) - for UI
 export type WorkflowEdge = FlowEdge;
 
-// Complete workflow definition
+// Backend DAG node structure
+export interface DagNode {
+  id: string;
+  type: string;
+  pluginId?: string;
+  config?: PluginConfig;
+  position?: { x: number; y: number };
+  label?: string;
+}
+
+// Backend DAG edge structure
+export interface DagEdge {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+}
+
+// DAG Definition structure used by backend
+export interface DagDefinition {
+  nodes: DagNode[];
+  edges: DagEdge[];
+}
+
+// Complete workflow definition from backend API
 export interface WorkflowDefinition {
   id: string;
   name: string;
   description?: string;
-  version: number;
-  nodes: WorkflowNode[];
-  edges: WorkflowEdge[];
+  isActive: boolean;
+  dagDefinition: DagDefinition;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Available plugins
-export interface Plugin {
-  id: string;
+// Input for creating a workflow
+export interface CreateWorkflowInput {
   name: string;
-  description: string;
-  icon?: string;
-  configSchema: Record<string, unknown>; // JSON Schema for plugin config
+  description?: string;
+  dagDefinition: DagDefinition;
+}
+
+// Input for updating a workflow
+export interface UpdateWorkflowInput {
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+  dagDefinition?: DagDefinition;
 }
 
 // Workflow version
@@ -72,7 +102,7 @@ export interface WorkflowVersion {
   id: string;
   workflowId: string;
   version: number;
-  definition: WorkflowDefinition;
+  dagDefinition: DagDefinition;
   createdAt: string;
   createdBy: string;
 }

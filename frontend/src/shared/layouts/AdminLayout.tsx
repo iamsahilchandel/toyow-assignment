@@ -26,7 +26,7 @@ export function AdminLayout() {
   }
 
   // Check for ADMIN role
-  if (user?.role !== "admin") {
+  if (user?.role !== "ADMIN") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>

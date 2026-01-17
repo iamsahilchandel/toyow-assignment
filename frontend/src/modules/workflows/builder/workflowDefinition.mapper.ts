@@ -5,18 +5,17 @@
 import type {
   WorkflowNode,
   WorkflowEdge,
-  WorkflowDefinitionJSON,
+  DagDefinition,
   NodeConfig,
 } from "./builder.types";
 
 /**
- * Convert ReactFlow nodes and edges to backend JSON format.
+ * Convert ReactFlow nodes and edges to backend DAG format.
  */
 export function mapToBackendFormat(
   nodes: WorkflowNode[],
   edges: WorkflowEdge[],
-  settings?: { name?: string; description?: string },
-): WorkflowDefinitionJSON {
+): DagDefinition {
   return {
     nodes: nodes.map((node) => ({
       id: node.id,
@@ -36,26 +35,25 @@ export function mapToBackendFormat(
       targetHandle: edge.targetHandle ?? undefined,
       condition: edge.data?.condition,
     })),
-    settings,
   };
 }
 
 /**
- * Convert backend JSON format to ReactFlow nodes and edges.
+ * Convert backend DAG format to ReactFlow nodes and edges.
  */
-export function mapFromBackendFormat(definition: WorkflowDefinitionJSON): {
+export function mapFromBackendFormat(definition: DagDefinition): {
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
 } {
   const nodes: WorkflowNode[] = definition.nodes.map((node) => ({
     id: node.id,
-    type: "custom",
-    position: node.position,
+    type: "custom", // Always use 'custom' type for ReactFlow rendering
+    position: node.position || { x: 0, y: 0 },
     data: {
-      label: node.label,
-      pluginType: node.type,
-      config: node.config,
-      isConfigured: isNodeConfigured(node.type, node.config),
+      label: node.label || node.id,
+      pluginType: node.type as any, // Cast to PluginType
+      config: node.config as NodeConfig,
+      isConfigured: isNodeConfigured(node.type, node.config as NodeConfig),
     },
   }));
 
@@ -75,6 +73,7 @@ export function mapFromBackendFormat(definition: WorkflowDefinitionJSON): {
  * Check if a node has required configuration.
  */
 function isNodeConfigured(type: string, config: NodeConfig): boolean {
+  if (!config) return false;
   const c = config as Record<string, unknown>;
   switch (type) {
     case "TEXT_TRANSFORM":

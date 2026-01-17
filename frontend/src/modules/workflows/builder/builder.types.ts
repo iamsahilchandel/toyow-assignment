@@ -139,7 +139,7 @@ export interface BuilderState {
 }
 
 // Workflow definition format for backend
-export interface WorkflowDefinitionJSON {
+export interface DagDefinition {
   nodes: Array<{
     id: string;
     type: PluginType;
@@ -155,8 +155,4 @@ export interface WorkflowDefinitionJSON {
     targetHandle?: string;
     condition?: "true" | "false";
   }>;
-  settings?: {
-    name?: string;
-    description?: string;
-  };
 }

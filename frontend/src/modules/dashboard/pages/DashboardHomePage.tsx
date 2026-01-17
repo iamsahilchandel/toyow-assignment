@@ -39,11 +39,15 @@ export function DashboardHomePage() {
     );
   }
 
+  console.log("RUNS --------------->", runs);
+
   const workflowCount = workflows?.length || 0;
   const runsCount = runs?.length || 0;
-  const activeRuns =
-    runs?.filter((run) => run.status === "running" || run.status === "pending")
-      .length || 0;
+  const activeRuns = Array.isArray(runs)
+    ? runs?.filter(
+        (run) => run.status === "RUNNING" || run.status === "PENDING",
+      ).length
+    : 0;
 
   return (
     <div className="space-y-6">

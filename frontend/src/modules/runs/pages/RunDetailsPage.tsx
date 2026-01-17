@@ -17,7 +17,6 @@ import { RunStatusBadge } from "../components/RunStatusBadge";
 import { format } from "date-fns";
 import { Button } from "@/shared/ui/button";
 import { FileText } from "lucide-react";
-import type { StepStatus } from "@/modules/realtime/realtime.types";
 
 export function RunDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -58,13 +57,11 @@ export function RunDetailsPage() {
   };
 
   // Map steps to node statuses for the LiveRunViewer
-  // Note: We need the workflow definition to show the full DAG
-  // For now, we'll use steps data to infer node positions in a simple layout
   const workflowNodes =
     steps?.map((step, index) => ({
       id: step.nodeId,
       type: "plugin",
-      label: step.nodeName,
+      label: step.nodeId, // Use nodeId as label since backend doesn't provide nodeName
       position: { x: 150, y: index * 80 + 50 },
     })) || [];
 
@@ -76,32 +73,20 @@ export function RunDetailsPage() {
       target: steps[index + 1].nodeId,
     })) || [];
 
-  // Map steps to initial statuses (convert to StepStatus)
-  const mapStatus = (status: string): StepStatus => {
-    const statusMap: Record<string, StepStatus> = {
-      pending: "PENDING",
-      running: "RUNNING",
-      succeeded: "SUCCESS",
-      failed: "FAILED",
-      skipped: "SKIPPED",
-      retrying: "RETRYING",
-    };
-    return statusMap[status.toLowerCase()] || "PENDING";
-  };
-
+  // Map steps to initial statuses
   const initialSteps =
     steps?.map((step) => ({
       nodeId: step.nodeId,
-      status: mapStatus(step.status),
+      status: step.status,
     })) || [];
 
-  const isRunning = run.status === "running" || run.status === "pending";
+  const isRunning = run.status === "RUNNING" || run.status === "PENDING";
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={`Run: ${run.id.slice(0, 8)}...`}
-        description={run.workflowName}
+        description={`Version: ${run.workflowVersionId.slice(0, 8)}...`}
         actions={
           <div className="flex gap-2">
             <Link to={`/runs/${run.id}/logs`}>
@@ -154,8 +139,10 @@ export function RunDetailsPage() {
               <RunStatusBadge status={run.status} />
             </div>
             <div>
-              <span className="text-sm font-medium">Workflow:</span>{" "}
-              {run.workflowName}
+              <span className="text-sm font-medium">Workflow Version:</span>{" "}
+              <code className="text-xs font-mono">
+                {run.workflowVersionId.slice(0, 12)}...
+              </code>
             </div>
             <div>
               <span className="text-sm font-medium">Started:</span>{" "}
@@ -167,16 +154,14 @@ export function RunDetailsPage() {
                 {format(new Date(run.completedAt), "PPpp")}
               </div>
             )}
-            {run.duration && (
+            {run.input && Object.keys(run.input).length > 0 && (
               <div>
-                <span className="text-sm font-medium">Duration:</span>{" "}
-                {(run.duration / 1000).toFixed(2)}s
+                <span className="text-sm font-medium">Input:</span>{" "}
+                <code className="text-xs font-mono">
+                  {JSON.stringify(run.input)}
+                </code>
               </div>
             )}
-            <div>
-              <span className="text-sm font-medium">Triggered by:</span>{" "}
-              {run.triggeredBy}
-            </div>
           </CardContent>
         </Card>
 
